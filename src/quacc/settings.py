@@ -165,7 +165,7 @@ class QuaccSettings(BaseSettings):
     # ONETEP Settings
     # ---------------------------
     ONETEP_CMD: Optional[Path] = Field(
-        Path("onetep.arch"), description=("Path to the ONETEP executable.")
+        Path("/home/ds12g20/software/dsarpa_onetep/utils/onetep_launcher"), description=("Path to the ONETEP executable.")
     )
     ONETEP_PARALLEL_CMD: Optional[dict] = Field(
         None,

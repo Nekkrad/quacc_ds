@@ -1,12 +1,11 @@
 from pathlib import Path
-
+from typing import TYPE_CHECKING
 from ase.build import molecule
 from ase.optimize import LBFGS
 
 from quacc import SETTINGS
 from quacc.recipes.onetep.core import ase_relax_job, static_job
 from quacc.utils.files import copy_decompress_files
-
 DEFAULT_SETTINGS = SETTINGS.model_copy()
 DATA_DIR = Path(__file__).parent / "data"
 
@@ -15,7 +14,7 @@ def test_static_job(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
     copy_decompress_files([DATA_DIR / "H.usp.gz"], tmp_path)
-
+    print("HERE")
     keywords = {"pseudo_path": str(tmp_path)}
     pseudopotentials = {"H": "H.usp"}
 
