@@ -26,8 +26,9 @@ class Onetep(Onetep_):
         self.input_atoms = input_atoms
         self.calc_defaults = calc_defaults
         self.directory =directory
+        self.template = template
         kwargs = recursive_dict_merge(self.calc_defaults, kwargs)
 
         super().__init__(
-            profile=profile, template=template,directory=self.directory, parallel_info=parallel_info, **kwargs
+            profile=profile, template=template,directory=directory, parallel_info=parallel_info, **kwargs
         )
