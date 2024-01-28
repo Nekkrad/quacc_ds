@@ -5,7 +5,7 @@ import os
 from importlib import util
 from pathlib import Path
 from shutil import which
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Optional, Union
 
 import psutil
 from maggma.core import Store
@@ -53,11 +53,9 @@ class QuaccSettings(BaseSettings):
     # Workflow Engine
     # ---------------------------
 
-    WORKFLOW_ENGINE: Literal[
-        "covalent", "dask", "parsl", "prefect", "redun", "jobflow"
-    ] | None = Field(
-        installed_engine, description=("The workflow manager to use, if any.")
-    )
+    WORKFLOW_ENGINE: Optional[
+        Literal["covalent", "dask", "parsl", "prefect", "redun", "jobflow"]
+    ] = Field(installed_engine, description=("The workflow manager to use, if any."))
 
     # ---------------------------
     # General Settings
@@ -70,7 +68,7 @@ class QuaccSettings(BaseSettings):
             "Note that this behavior may be modified by the chosen workflow engine."
         ),
     )
-    SCRATCH_DIR: Path | None = Field(
+    SCRATCH_DIR: Optional[Path] = Field(
         None,
         description=(
             "The base directory where calculations are run. If set to None, calculations will be run in a "
@@ -99,7 +97,7 @@ class QuaccSettings(BaseSettings):
     # ---------------------------
     # Data Store Settings
     # ---------------------------
-    PRIMARY_STORE: str | Store | None = Field(
+    PRIMARY_STORE: Optional[Union[str, Store]] = Field(
         None,
         description=(
             "String-based JSON representation of the primary Maggma data store "
@@ -148,7 +146,7 @@ class QuaccSettings(BaseSettings):
         },
         description="Name for each espresso binary.",
     )
-    ESPRESSO_PSEUDO: Path | None = Field(
+    ESPRESSO_PSEUDO: Optional[Path] = Field(
         None, description=("Path to a pseudopotential library for espresso.")
     )
     ESPRESSO_PRESET_DIR: Path = Field(
@@ -166,22 +164,24 @@ class QuaccSettings(BaseSettings):
     # ---------------------------
     # ONETEP Settings
     # ---------------------------
-    ONETEP_CMD: Path | None = Field(
-        None, description=("Path to the ONETEP executable.")
+    ONETEP_CMD: Optional[Path] = Field(
+        Path("onetep.arch"), description=("Path to the ONETEP executable.")
     )
-    ONETEP_PARALLEL_CMD: dict | None = Field(
+    ONETEP_PARALLEL_CMD: Optional[dict] = Field(
         None,
         description=(
             "Parallelization commands to run ONETEP that are prepended to the executable."
         ),
     )
-    ONETEP_PP_PATH: Path | None = Field(None, description=("Path to pseudopotentials."))
+    ONETEP_PP_PATH: Optional[Path] = Field(
+        None, description=("Path to pseudopotentials.")
+    )
 
     # ---------------------------
     # GULP Settings
     # ---------------------------
     GULP_CMD: Path = Field(Path("gulp"), description=("Path to the GULP executable."))
-    GULP_LIB: Path | None = Field(
+    GULP_LIB: Optional[Path] = Field(
         None,
         description=(
             "Path to the GULP force field library. If not specified, the GULP_LIB environment variable will be used (if present)."
@@ -207,11 +207,11 @@ class QuaccSettings(BaseSettings):
     VASP_GAMMA_CMD: str = Field(
         "vasp_gam", description="Command to run the gamma-point only version of VASP."
     )
-    VASP_PP_PATH: Path | None = Field(
+    VASP_PP_PATH: Optional[Path] = Field(
         None,
         description="Path to the VASP pseudopotential library. Must contain the directories `potpaw_PBE` and `potpaw` for PBE and LDA pseudopotentials, respectively.",
     )
-    VASP_VDW: Path | None = Field(
+    VASP_VDW: Optional[Path] = Field(
         None, description="Path to the vdw_kernel.bindat file for VASP vdW functionals."
     )
 
@@ -298,7 +298,7 @@ class QuaccSettings(BaseSettings):
         ["VasprunXMLValidator", "VaspFilesValidator"],
         description="Validators for Custodian",
     )
-    VASP_CUSTODIAN_WALL_TIME: int | None = Field(
+    VASP_CUSTODIAN_WALL_TIME: Optional[int] = Field(
         None,
         description=(
             "After this many seconds, Custodian will stop running "
@@ -335,17 +335,17 @@ class QuaccSettings(BaseSettings):
     )
 
     # NBO Settings
-    QCHEM_NBO_EXE: Path | None = Field(
+    QCHEM_NBO_EXE: Optional[Path] = Field(
         None, description="Full path to the NBO executable."
     )
 
     # ---------------------------
     # NewtonNet Settings
     # ---------------------------
-    NEWTONNET_MODEL_PATH: Path | list[Path] = Field(
+    NEWTONNET_MODEL_PATH: Union[Path, list[Path]] = Field(
         "best_model_state.tar", description="Path to NewtonNet .tar model"
     )
-    NEWTONNET_CONFIG_PATH: Path | list[Path] = Field(
+    NEWTONNET_CONFIG_PATH: Union[Path, list[Path]] = Field(
         "config.yml", description="Path to NewtonNet YAML settings file"
     )
 
@@ -364,7 +364,7 @@ class QuaccSettings(BaseSettings):
 
     @field_validator("RESULTS_DIR", "SCRATCH_DIR")
     @classmethod
-    def resolve_and_make_paths(cls, v: Path | None) -> Path | None:
+    def resolve_and_make_paths(cls, v: Optional[Path]) -> Optional[Path]:
         """Resolve and make paths."""
         if v is None:
             return v
@@ -388,12 +388,12 @@ class QuaccSettings(BaseSettings):
         "VASP_VDW",
     )
     @classmethod
-    def expand_paths(cls, v: Path | None) -> Path | None:
+    def expand_paths(cls, v: Optional[Path]) -> Optional[Path]:
         """Expand ~/ in paths."""
         return v.expanduser() if v is not None else v
 
     @field_validator("PRIMARY_STORE")
-    def generate_store(cls, v: str | Store) -> Store:
+    def generate_store(cls, v: Union[str, Store]) -> Store:
         """Generate the Maggma store."""
         from monty.json import MontyDecoder
 
