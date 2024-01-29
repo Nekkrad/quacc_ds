@@ -24,22 +24,23 @@ class OnetepTemplate(OnetepTemplate_):
 
         self.max_walltime = max_walltime
         self.created_time = time.time()
-
+        self.error = False 
+    
     def read_results(self, directory):
         try:
             output_path = directory / self.output
             atoms = read(output_path, format="onetep-out")
             self.atoms_list.append(atoms)
+            assert self.error == True
             return dict(atoms.calc.properties())
         except Exception as e:
-            raise e(directory, self.label, self.atoms_list) from e
+            raise e(directory, self.label, self.atoms_list) from e   
 
     def execute(self, directory, profile):
         try:
             profile.run(directory, self.input, self.output, self.error, self.append)
         except Exception as e:
-            raise e(directory, self.label, self.atoms_list) from e
-
+            self.error = True
 
 class Onetep(Onetep_):
     def __init__(
