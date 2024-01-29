@@ -128,6 +128,9 @@ def ase_relax_job(
 
     opt_defaults = {"fmax": 0.01, "max_steps": 1000, "optimizer": LBFGS}
 
+    if hasattr(atoms.calc, "results"):
+        calc_kwargs["restart_from"] = atoms
+
     return base_opt_fn(
         atoms,
         directory=directory,
