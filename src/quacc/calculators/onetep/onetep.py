@@ -17,11 +17,11 @@ if TYPE_CHECKING:
 
 
 class OnetepTemplate(OnetepTemplate_):
-    def __init__(self, *args, max_walltime, **kwargs):
-        super().__init__(*args, append=True, **kwargs)
+    def __init__(self, append, timeout, **kwargs):
+        super().__init__(append=append, timeout=timeout)
 
         self.created_time = time.time()
-        self.max_walltime = max_walltime
+        self.max_walltime = timeout
 
         self.job_error = None
         self.read_error = None
@@ -71,7 +71,7 @@ class Onetep(Onetep_):
 
         super().__init__(profile=profile, **kwargs)
 
-        self.template = OnetepTemplate(max_walltime=SETTINGS.WALLTIME)
+        self.template = OnetepTemplate(append=True, timeout=SETTINGS.WALLTIME)
 
         if opt_restart:
             try:
