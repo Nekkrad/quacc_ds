@@ -89,10 +89,11 @@ The list of available quacc recipes is shown below. The "Req'd Extras" column sp
 
 <center>
 
-| Name       | Decorator       | Documentation                         | Req'd Extras |
-| ---------- | --------------- | ------------------------------------- | ------------ |
-| MLP Static | `#!Python @job` | [quacc.recipes.mlp.core.static_job][] | `quacc[mlp]` |
-| MLP Relax  | `#!Python @job` | [quacc.recipes.mlp.core.relax_job][]  | `quacc[mlp]` |
+| Name        | Decorator        | Documentation                             | Req'd Extras         |
+| ----------- | ---------------- | ----------------------------------------- | -------------------- |
+| MLP Static  | `#!Python @job`  | [quacc.recipes.mlp.core.static_job][]     | `quacc[mlp]`         |
+| MLP Relax   | `#!Python @job`  | [quacc.recipes.mlp.core.relax_job][]      | `quacc[mlp]`         |
+| MLP Phonons | `#!Python @flow` | [quacc.recipes.mlp.phonons.phonon_flow][] | `quacc[mlp,phonons]` |
 
 </center>
 
@@ -198,6 +199,8 @@ The list of available quacc recipes is shown below. The "Req'd Extras" column sp
 | Espresso Non-SCF         | `#!Python @job`  | [quacc.recipes.espresso.core.non_scf_job][]         |              |
 | Espresso DOS             | `#!Python @job`  | [quacc.recipes.espresso.dos.dos_job][]              |              |
 | Espresso DOS Flow        | `#!Python @flow` | [quacc.recipes.espresso.dos.dos_flow][]             |              |
+| Espresso Projwfc         | `#!Python @job`  | [quacc.recipes.espresso.dos.projwfc_job][]          |              |
+| Espresso Projwfc Flow    | `#!Python @flow` | [quacc.recipes.espresso.dos.projwfc_flow][]         |              |
 
 </center>
 

@@ -1,4 +1,5 @@
 """Base jobs for Onetep."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -31,7 +32,6 @@ def base_fn(
     additional_fields: dict[str, Any] | None = None,
     copy_files: list[str] | None = None,
 ) -> RunSchema:
-
     """
     Base function to carry out Onetep recipes.
 
@@ -45,12 +45,6 @@ def base_fn(
         Custom kwargs for the ONETEP calculator. Set a value to
         `quacc.Remove` to remove a pre-existing key entirely. For a list of available
         keys, refer to the `ase.calculators.onetep.Onetep` calculator.
-    opt_defaults
-        The default optimization parameters.
-    opt_params
-        Dictionary of parameters to pass to the optimizer. pass "optimizer"
-        to change the optimizer being used. "fmax" and "max_steps" are commonly
-        used keywords. See the ASE documentation for more information.
     additional_fields
         Any additional fields to supply to the summarizer.
     copy_files
@@ -73,7 +67,6 @@ def base_fn(
         **calc_flags,
     )
 
-
     final_atoms = run_calc(atoms, copy_files=copy_files)
 
     return summarize_run(final_atoms, atoms, additional_fields=additional_fields)
@@ -81,7 +74,7 @@ def base_fn(
 
 def base_opt_fn(
     atoms: Atoms = Atoms(),
-    directory : str =".",
+    directory: str = ".",
     template: OnetepTemplate | None = None,
     profile: OnetepProfile | None = None,
     calc_defaults: dict[str, Any] | None = None,
@@ -92,7 +85,6 @@ def base_opt_fn(
     additional_fields: dict[str, Any] | None = None,
     copy_files: list[str] | None = None,
 ) -> RunSchema:
-
     """
     Base function to carry out Onetep recipes.
 
@@ -105,7 +97,7 @@ def base_opt_fn(
     calc_swaps
         Custom kwargs for the ONETEP calculator. Set a value to
         `quacc.Remove` to remove a pre-existing key entirely. For a list of available
-        keys, refer to the `ase.calculators.onetep.Onetep` calculator.
+        keys, refer to the [ase.calculators.onetep.Onetep][] calculator.
     opt_defaults
         The default optimization parameters.
     opt_params

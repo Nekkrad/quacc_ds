@@ -1,4 +1,5 @@
- """Core recipes for Onetep."""
+"""Core recipes for Onetep."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -30,13 +31,13 @@ BASE_SET = {
 @job
 def static_job(
     atoms: Atoms = Atoms(),
-    directory : str = ".",
+    directory: str = ".",
     template: OnetepTemplate | None = None,
     profile: OnetepProfile | None = None,
     parallel_info: dict[str] | None = None,
     additional_fields: dict[str, Any] | None = None,
     copy_files: list[str] | None = None,
-    **calc_kwargs
+    **calc_kwargs,
 ) -> RunSchema:
     """
     Function to carry out a basic SCF calculation with ONETEP.
@@ -50,7 +51,7 @@ def static_job(
     **calc_kwargs
         Custom kwargs for the ONETEP calculator. Set a value to
         `quacc.Remove` to remove a pre-existing key entirely. For a list of available
-        keys, refer to the `ase.calculators.onetep.Onetep` calculator.
+        keys, refer to the [ase.calculators.onetep.Onetep][] calculator.
 
     Returns
     -------
@@ -60,7 +61,6 @@ def static_job(
     """
 
     calc_defaults = BASE_SET
-
 
     return base_fn(
         atoms,
@@ -78,7 +78,7 @@ def static_job(
 @job
 def ase_relax_job(
     atoms: Atoms,
-    directory: str =".",
+    directory: str = ".",
     template: OnetepTemplate | None = None,
     profile: OnetepProfile | None = None,
     parallel_info: dict[str] | None = None,
@@ -135,8 +135,8 @@ def ase_relax_job(
         atoms,
         directory=directory,
         calc_defaults=calc_defaults,
-        template=template ,
-        profile=profile ,
+        template=template,
+        profile=profile,
         parallel_info=parallel_info,
         calc_swaps=calc_kwargs,
         opt_defaults=opt_defaults,
