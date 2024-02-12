@@ -69,7 +69,7 @@ class Onetep(Onetep_):
         self._binary = str(SETTINGS.ONETEP_CMD)
         profile = OnetepProfile(self._binary, parallel_info=parallel_info)
 
-        super().__init__(profile=profile)
+        super().__init__(profile=profile, **kwargs)
 
         self.template = OnetepTemplate(max_walltime=SETTINGS.WALLTIME)
 
