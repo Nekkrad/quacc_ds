@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class OnetepTemplate(OnetepTemplate_):
-    def __init__(self, append, timeout, **kwargs):
+    def __init__(self, append, timeout):
         super().__init__(append=append, timeout=timeout)
 
         self.created_time = time.time()
