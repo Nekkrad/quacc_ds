@@ -2,21 +2,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from ase.optimize import LBFGS
-from quacc.calculators.onetep.onetep import Onetep, OnetepProfile
-from ase.calculators.onetep import OnetepTemplate
-from quacc import job
-from quacc.recipes.onetep._base import base_fn, base_opt_fn
-from quacc.utils.dicts import recursive_dict_merge
-
-
 from typing import Any
 
 from ase import Atoms
+from ase.optimize import LBFGS
 
+from quacc import job
+from quacc.recipes.onetep._base import base_fn, base_opt_fn
 from quacc.schemas._aliases.ase import RunSchema
+from quacc.utils.dicts import recursive_dict_merge
 
 BASE_SET = {
     "keywords": {
@@ -30,10 +24,7 @@ BASE_SET = {
 
 @job
 def static_job(
-    atoms: Atoms = Atoms(),
-    directory: str = ".",
-    template: OnetepTemplate | None = None,
-    profile: OnetepProfile | None = None,
+    atoms: Atoms,
     parallel_info: dict[str] | None = None,
     additional_fields: dict[str, Any] | None = None,
     copy_files: list[str] | None = None,
@@ -64,9 +55,6 @@ def static_job(
 
     return base_fn(
         atoms,
-        directory=directory,
-        profile=profile,
-        template=template,
         calc_defaults=calc_defaults,
         calc_swaps=calc_kwargs,
         parallel_info=parallel_info,
@@ -78,13 +66,10 @@ def static_job(
 @job
 def ase_relax_job(
     atoms: Atoms,
-    directory: str = ".",
-    template: OnetepTemplate | None = None,
-    profile: OnetepProfile | None = None,
+    opt_params: dict[str, Any] | None = None,
     parallel_info: dict[str] | None = None,
     additional_fields: dict[str, Any] | None = None,
     copy_files: list[str] | None = None,
-    opt_params: dict[str, Any] | None = None,
     **calc_kwargs,
 ) -> RunSchema:
     """
@@ -128,19 +113,13 @@ def ase_relax_job(
 
     opt_defaults = {"fmax": 0.01, "max_steps": 1000, "optimizer": LBFGS}
 
-    if hasattr(atoms.calc, "results"):
-        calc_kwargs["restart_from"] = atoms
-
     return base_opt_fn(
         atoms,
-        directory=directory,
         calc_defaults=calc_defaults,
-        template=template,
-        profile=profile,
-        parallel_info=parallel_info,
         calc_swaps=calc_kwargs,
         opt_defaults=opt_defaults,
         opt_params=opt_params,
+        parallel_info=parallel_info,
         additional_fields=additional_fields,
         copy_files=copy_files,
     )

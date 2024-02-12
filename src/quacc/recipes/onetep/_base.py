@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from ase import Atoms
-from quacc.calculators.onetep.onetep import Onetep, OnetepProfile
-from ase.calculators.onetep import OnetepTemplate
 
+from ase import Atoms
 
 from quacc import SETTINGS
+from quacc.calculators.onetep.onetep import Onetep
 from quacc.runners.ase import run_calc, run_opt
 from quacc.schemas.ase import summarize_opt_run, summarize_run
 from quacc.utils.dicts import recursive_dict_merge
@@ -22,10 +21,7 @@ if TYPE_CHECKING:
 
 
 def base_fn(
-    atoms: Atoms = Atoms(),
-    directory: str = ".",
-    template: OnetepTemplate | None = None,
-    profile: OnetepProfile | None = None,
+    atoms: Atoms,
     calc_defaults: dict[str, Any] | None = None,
     calc_swaps: dict[str, Any] | None = None,
     parallel_info: dict[str] | None = None,
@@ -56,12 +52,9 @@ def base_fn(
         Dictionary of results from [quacc.schemas.ase.summarize_run][]
     """
     calc_flags = recursive_dict_merge(calc_defaults, calc_swaps)
+
     atoms.calc = Onetep(
         input_atoms=atoms,
-        directory=directory,
-        template=template,
-        profile=profile,
-        calc_defaults=calc_defaults,
         parallel_info=parallel_info,
         pseudo_path=str(SETTINGS.ONETEP_PP_PATH) if SETTINGS.ONETEP_PP_PATH else ".",
         **calc_flags,
@@ -73,10 +66,7 @@ def base_fn(
 
 
 def base_opt_fn(
-    atoms: Atoms = Atoms(),
-    directory: str = ".",
-    template: OnetepTemplate | None = None,
-    profile: OnetepProfile | None = None,
+    atoms: Atoms,
     calc_defaults: dict[str, Any] | None = None,
     calc_swaps: dict[str, Any] | None = None,
     opt_defaults: dict[str, Any] | None = None,
@@ -118,14 +108,13 @@ def base_opt_fn(
 
     opt_flags = recursive_dict_merge(opt_defaults, opt_params)
 
+    opt_restart = opt_flags.pop("restart", False)
+
     atoms.calc = Onetep(
         input_atoms=atoms,
-        directory=directory,
-        template=template,
-        profile=profile,
-        calc_defaults=calc_defaults,
         parallel_info=parallel_info,
         pseudo_path=str(SETTINGS.ONETEP_PP_PATH) if SETTINGS.ONETEP_PP_PATH else ".",
+        opt_restart=opt_restart,
         **calc_flags,
     )
 

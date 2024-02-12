@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import time
 from typing import TYPE_CHECKING
+
 from ase.calculators.onetep import Onetep as Onetep_
 from ase.calculators.onetep import OnetepProfile
 from ase.calculators.onetep import OnetepTemplate as OnetepTemplate_
@@ -10,48 +12,71 @@ from quacc import SETTINGS
 
 if TYPE_CHECKING:
     from typing import Any
+
     from ase import Atoms
+
 
 class OnetepTemplate(OnetepTemplate_):
     def __init__(self, *args, max_walltime, **kwargs):
         super().__init__(*args, append=True, **kwargs)
-        self.atoms_list = []
-        self.max_walltime = max_walltime
+
         self.created_time = time.time()
-        self.job_error = False
- 
+        self.max_walltime = max_walltime
+
+        self.job_error = None
+        self.read_error = None
+
     def read_results(self, directory):
         try:
-            output_path = directory / self.outputname
-            atoms = read(output_path, format="onetep-out")
-            self.atoms_list.append(atoms)
-            if self.job_error:
-                raise Exception(directory, self.atoms_list)
-            return dict(atoms.calc.properties())
+            atoms = read(directory / self.outputname, format="onetep-out")
+
+            return self._error_handler(dict(atoms.calc.properties()))
         except Exception as e:
-            raise Exception(directory,  self.atoms_list) from e
+            self.read_error = e
+
+            return self._error_handler({"energy": None})
+
+    def _error_handler(self, results):
+        errors = {"job_error": self.job_error, "read_error": self.read_error}
+        return {**results, **errors}
 
     def execute(self, directory, profile):
+        corrected_time = self.max_walltime - 300
+
         try:
-            profile.run(directory, self.inputname, self.outputname, self.errorname,  append=self.append)
+            profile.run(
+                directory,
+                self.inputname,
+                self.outputname,
+                self.errorname,
+                append=self.append,
+                timeout=corrected_time,
+            )
         except Exception as e:
-            self.job_error = True
+            self.job_error = e
+
 
 class Onetep(Onetep_):
     def __init__(
         self,
         input_atoms: Atoms = None,
-        template: OnetepTemplate = None,
-        profile: OnetepProfile = None,
         parallel_info: dict[str | Any] | None = None,
-        max_walltime: int = 2147483647,
+        opt_restart: bool = False,
         **kwargs,
     ):
         self.input_atoms = input_atoms
+
         self._binary = str(SETTINGS.ONETEP_CMD)
         profile = OnetepProfile(self._binary, parallel_info=parallel_info)
+
         super().__init__(profile=profile, **kwargs)
 
-        max_walltime = max_walltime or 2147483647
+        self.template = OnetepTemplate(max_walltime=SETTINGS.WALLTIME)
 
-        self.template = template or OnetepTemplate(max_walltime=max_walltime)
+        if opt_restart:
+            try:
+                self.atoms = self.input_atoms.copy()
+                self.results = self.input_atoms.calc.results.copy()
+            except AttributeError:
+                self.atoms = None
+                self.results = {}

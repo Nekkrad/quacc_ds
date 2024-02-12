@@ -102,7 +102,10 @@ class QuaccSettings(BaseSettings):
         True,
         description="Whether to check for convergence, when implemented by a given recipe.",
     )
-
+    MAX_WALLTIME: int = Field(
+        2147483647,
+        description="Max time in seconds that will be sent to the ASE Profile",
+    )
     # ---------------------------
     # Data Store Settings
     # ---------------------------
