@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING
 
+from ase.calculators.calculator import PropertyNotImplementedError
 from ase.calculators.onetep import Onetep as Onetep_
 from ase.calculators.onetep import OnetepProfile
 from ase.calculators.onetep import OnetepTemplate as OnetepTemplate_
@@ -34,12 +35,19 @@ class OnetepTemplate(OnetepTemplate_):
             self.atoms = atoms
 
             results = dict(atoms.calc.properties())
+
+            if "energy" not in results:
+                raise PropertyNotImplementedError(
+                    "energy not present in this calculation. Most likely ONETEP did not converge"
+                )
         except Exception as e:
             self.read_error = e
 
         if self.job_error or self.read_error:
             raise QuaccException(
-                job_error=self.job_error, read_error=self.read_error, current_atoms=self.atoms
+                job_error=self.job_error,
+                read_error=self.read_error,
+                current_atoms=self.atoms,
             )
 
         return results

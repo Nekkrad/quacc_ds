@@ -127,7 +127,7 @@ def base_opt_fn(
 
     try:
         dyn = run_opt(atoms, copy_files=copy_files, **opt_flags)
-    except QuaccException as e:
+    except (QuaccException) as e:
         final_atoms = e.current_atoms or atoms
         additional_fields = recursive_dict_merge(
             additional_fields, {"job_error": e.job_error, "read_error": e.read_error}
