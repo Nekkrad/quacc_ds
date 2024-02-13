@@ -78,9 +78,6 @@ def summarize_run(
     if not final_atoms.calc:
         msg = "ASE Atoms object has no attached calculator."
         raise ValueError(msg)
-    if not final_atoms.calc.results:
-        msg = "ASE Atoms object's calculator has no results."
-        raise ValueError(msg)
 
     directory = final_atoms.calc.directory
     uri = get_uri(directory)
@@ -101,7 +98,7 @@ def summarize_run(
         "quacc_version": __version__,
     }
 
-    results = {"results": final_atoms.calc.results}
+    results = {"results": final_atoms.calc.results or {}}
 
     if move_magmoms:
         final_atoms = prep_magmoms(final_atoms)
