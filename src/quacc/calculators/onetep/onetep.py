@@ -57,7 +57,7 @@ class OnetepTemplate(OnetepTemplate_):
         return {**results, **errors}
 
     def execute(self, directory, profile):
-        corrected_time = self.max_walltime - 300
+        remaining_time = self.max_walltime - (time.time() - self.created_time)
 
         try:
             profile.run(
@@ -66,7 +66,7 @@ class OnetepTemplate(OnetepTemplate_):
                 self.outputname,
                 self.errorname,
                 append=self.append,
-                timeout=corrected_time,
+                timeout=remaining_time,
             )
         except Exception as e:
             self.job_error = e
