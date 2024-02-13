@@ -26,10 +26,12 @@ class OnetepTemplate(OnetepTemplate_):
 
         self.job_error = None
         self.read_error = None
+        self.atoms = None
 
     def read_results(self, directory):
         try:
             atoms = read(directory / self.outputname, format="onetep-out")
+            self.atoms = atoms
 
             results = dict(atoms.calc.properties())
         except Exception as e:
@@ -37,7 +39,7 @@ class OnetepTemplate(OnetepTemplate_):
 
         if self.job_error or self.read_error:
             raise QuaccException(
-                job_error=self.job_error, read_error=self.read_error, current_atoms=atoms
+                job_error=self.job_error, read_error=self.read_error, current_atoms=self.atoms
             )
 
         return results
