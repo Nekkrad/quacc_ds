@@ -11,6 +11,7 @@ from quacc.calculators.onetep.onetep import Onetep
 from quacc.runners.ase import run_calc, run_opt
 from quacc.schemas.ase import summarize_opt_run, summarize_run
 from quacc.utils.dicts import recursive_dict_merge
+from quacc.wflow_tools.exceptions import QuaccException
 
 if TYPE_CHECKING:
     from typing import Any
@@ -60,7 +61,13 @@ def base_fn(
         **calc_flags,
     )
 
-    final_atoms = run_calc(atoms, copy_files=copy_files)
+    try:
+        final_atoms = run_calc(atoms, copy_files=copy_files)
+    except QuaccException as e:
+        final_atoms = e.current_atoms
+        additional_fields = recursive_dict_merge(
+            additional_fields, {"job_error": e.job_error, "read_error": e.read_error}
+        )
 
     return summarize_run(final_atoms, atoms, additional_fields=additional_fields)
 
@@ -118,6 +125,12 @@ def base_opt_fn(
         **calc_flags,
     )
 
-    final_atoms = run_opt(atoms, copy_files=copy_files, **opt_flags)
+    try:
+        final_atoms = run_opt(atoms, copy_files=copy_files, **opt_flags)
+    except QuaccException as e:
+        final_atoms = e.current_atoms
+        additional_fields = recursive_dict_merge(
+            additional_fields, {"job_error": e.job_error, "read_error": e.read_error}
+        )
 
     return summarize_opt_run(final_atoms, additional_fields=additional_fields)

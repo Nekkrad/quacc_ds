@@ -9,6 +9,7 @@ from ase.calculators.onetep import OnetepTemplate as OnetepTemplate_
 from ase.io import read
 
 from quacc import SETTINGS
+from quacc.wflow_tools.exceptions import QuaccException
 
 if TYPE_CHECKING:
     from typing import Any
@@ -30,11 +31,16 @@ class OnetepTemplate(OnetepTemplate_):
         try:
             atoms = read(directory / self.outputname, format="onetep-out")
 
-            return self._error_handler(dict(atoms.calc.properties()))
+            results = dict(atoms.calc.properties())
         except Exception as e:
             self.read_error = e
 
-            return self._error_handler({"energy": None})
+        if self.job_error or self.read_error:
+            raise QuaccException(
+                job_error=self.job_error, read_error=self.read_error, current_atoms=atoms
+            )
+
+        return results
 
     def _error_handler(self, results):
         errors = {"job_error": self.job_error, "read_error": self.read_error}

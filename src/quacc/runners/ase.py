@@ -17,6 +17,7 @@ from quacc import SETTINGS
 from quacc.atoms.core import copy_atoms, get_final_atoms_from_dyn
 from quacc.runners.prep import calc_cleanup, calc_setup
 from quacc.utils.dicts import recursive_dict_merge
+from quacc.wflow_tools.exceptions import QuaccException
 
 try:
     from sella import Sella
