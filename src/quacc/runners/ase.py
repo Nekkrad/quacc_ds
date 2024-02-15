@@ -92,10 +92,15 @@ def run_calc(
     tmpdir, job_results_dir = calc_setup(atoms, copy_files=copy_files)
 
     # Run calculation
-    if get_forces:
-        atoms.get_forces()
-    else:
-        atoms.get_potential_energy()
+    try:
+        if get_forces:
+            atoms.get_forces()
+        else:
+            atoms.get_potential_energy()
+    except QuaccException as e:
+        pass
+    except Exception as e:
+        raise QuaccException(job_error=e, current_atoms=atoms)
 
     # Most ASE calculators do not update the atoms object in-place with a call
     # to .get_potential_energy(), which is important if an internal optimizer is
@@ -211,7 +216,12 @@ def run_opt(
 
     # Run calculation
     with traj, optimizer(atoms, **optimizer_kwargs) as dyn:
-        dyn.run(fmax=fmax, steps=max_steps, **run_kwargs)
+        try:
+            dyn.run(fmax=fmax, steps=max_steps, **run_kwargs)
+        except QuaccException as e:
+            e.current_atoms = dyn
+        except Exception as e:
+            raise QuaccException(job_error=e, current_atoms=dyn)
 
     # Store the trajectory atoms
     dyn.traj_atoms = read(traj_filename, index=":")
