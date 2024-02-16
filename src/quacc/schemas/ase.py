@@ -130,6 +130,7 @@ def summarize_opt_run(
     move_magmoms: bool = True,
     additional_fields: dict[str, Any] | None = None,
     store: Store | bool | None = None,
+    failed: bool = False,
 ) -> OptSchema:
     """
     Get tabulated results from an ASE Atoms trajectory and store them in a database-
@@ -156,6 +157,8 @@ def summarize_opt_run(
     store
         Maggma Store object to store the results in. If None,
         `SETTINGS.STORE` will be used.
+    failed
+        Whether the job failed. If True, the task will be marked as failed.
 
     Returns
     -------
@@ -185,11 +188,13 @@ def summarize_opt_run(
     final_atoms = get_final_atoms_from_dyn(dyn)
     directory = final_atoms.calc.directory
 
-    # Check convergence
-    is_converged = dyn.converged()
-    if check_convergence and not is_converged:
-        msg = f"Optimization did not converge. Refer to {directory}"
-        raise RuntimeError(msg)
+    if not failed:
+        is_converged = dyn.converged()
+        if check_convergence and not is_converged:
+            msg = f"Optimization did not converge. Refer to {directory}"
+            raise RuntimeError(msg)
+    else:
+        is_converged = False
 
     # Base task doc
     base_task_doc = summarize_run(
