@@ -127,12 +127,14 @@ def base_opt_fn(
 
     try:
         dyn = run_opt(atoms, copy_files=copy_files, **opt_flags)
+        failed = False
     except QuaccException as e:
         dyn = e.current_atoms
         additional_fields = recursive_dict_merge(
             additional_fields, {"job_error": e.job_error, "read_error": e.read_error}
         )
+        failed = True
 
     return summarize_opt_run(
-        dyn, check_convergence=False, additional_fields=additional_fields
+        dyn, check_convergence=False, additional_fields=additional_fields, failed=failed
     )
