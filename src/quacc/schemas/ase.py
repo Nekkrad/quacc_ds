@@ -177,7 +177,11 @@ def summarize_opt_run(
             else read(dyn.trajectory.filename, index=":")
         )
 
-    initial_atoms = trajectory[0]
+    try:
+        initial_atoms = trajectory[0]
+    except IndexError:
+        initial_atoms = get_final_atoms_from_dyn(dyn)
+
     final_atoms = get_final_atoms_from_dyn(dyn)
     directory = final_atoms.calc.directory
 
