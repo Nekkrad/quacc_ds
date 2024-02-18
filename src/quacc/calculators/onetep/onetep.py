@@ -47,7 +47,7 @@ class OnetepTemplate(OnetepTemplate_):
             raise QuaccException(
                 job_error=self.job_error,
                 read_error=self.read_error,
-                current_atoms=self.atoms,
+                current_state=self.atoms,
             )
 
         return results
