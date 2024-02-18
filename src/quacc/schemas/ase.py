@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from maggma.core import Store
 
     from quacc.schemas._aliases.ase import (
+        FailedSchema,
         OptSchema,
         RunSchema,
         ThermoSchema,
@@ -130,7 +131,6 @@ def summarize_opt_run(
     move_magmoms: bool = True,
     additional_fields: dict[str, Any] | None = None,
     store: Store | bool | None = None,
-    failed: bool = False,
 ) -> OptSchema:
     """
     Get tabulated results from an ASE Atoms trajectory and store them in a database-
@@ -157,8 +157,6 @@ def summarize_opt_run(
     store
         Maggma Store object to store the results in. If None,
         `SETTINGS.STORE` will be used.
-    failed
-        Whether the job failed. If True, the task will be marked as failed.
 
     Returns
     -------
@@ -180,21 +178,14 @@ def summarize_opt_run(
             else read(dyn.trajectory.filename, index=":")
         )
 
-    try:
-        initial_atoms = trajectory[0]
-    except IndexError:
-        initial_atoms = get_final_atoms_from_dyn(dyn)
-
+    initial_atoms = trajectory[0]
     final_atoms = get_final_atoms_from_dyn(dyn)
     directory = final_atoms.calc.directory
 
-    if not failed:
-        is_converged = dyn.converged()
-        if check_convergence and not is_converged:
-            msg = f"Optimization did not converge. Refer to {directory}"
-            raise RuntimeError(msg)
-    else:
-        is_converged = False
+    is_converged = dyn.converged()
+    if check_convergence and not is_converged:
+        msg = f"Optimization did not converge. Refer to {directory}"
+        raise RuntimeError(msg)
 
     # Base task doc
     base_task_doc = summarize_run(
@@ -229,6 +220,103 @@ def summarize_opt_run(
         results_to_db(store, task_doc)
 
     return task_doc
+
+
+def summarize_failed_run(
+    error: Exception,
+    input_atoms: Atoms,
+    current_atoms: Atoms | None = None,
+    dyn: Optimizer | None = None,
+    additional_fields: dict[str, Any] | None = None,
+    store: Store | bool | None = None,
+) -> FailedSchema:
+    """
+    Get available information from a failed ASE calculation and store it in a
+    database-friendly format. No assump
+
+    Parameters
+    ----------
+    error
+        Exception that caused the failure.
+    input_atoms
+        Input ASE Atoms object to store.
+    current_atoms
+        Depending on the context, this could be the final Atoms object from a
+        failed calculation or the Atoms object that failed to converge.
+    dyn
+        Compatiblity with run_opt, this is the ASE Optimizer object.
+    additional_fields
+        Additional fields to add to the task document.
+    store
+        Maggma Store object to store the results in. If None,
+        `SETTINGS.STORE` will be used.
+
+    Returns
+    -------
+    FailedSchema
+        Dictionary representation of the task document
+    """
+
+    additional_fields = additional_fields or {}
+    store = SETTINGS.STORE if store is None else store
+
+    if dyn:
+        trajectory = (
+            dyn.traj_atoms
+            if hasattr(dyn, "traj_atoms")
+            else read(dyn.trajectory.filename, index=":")
+        )
+
+        current_atoms = current_atoms or get_final_atoms_from_dyn(dyn)
+        # Clean up the opt parameters
+        parameters_opt = dyn.todict()
+        parameters_opt.pop("logfile", None)
+        parameters_opt.pop("restart", None)
+
+        opt_fields = {
+            "fmax": getattr(dyn, "fmax", None),
+            "parameters_opt": parameters_opt,
+            "nsteps": dyn.get_number_of_steps(),
+            "trajectory": trajectory,
+        }
+    else:
+        current_atoms = current_atoms or input_atoms
+
+        opt_fields = {}
+
+    directory = current_atoms.calc.directory
+    uri = get_uri(directory)
+    input_atoms_metadata = (
+        atoms_to_metadata(input_atoms, store_pmg=False) if input_atoms else None
+    )
+
+    inputs = {
+        "parameters": current_atoms.calc.parameters,
+        "nid": uri.split(":")[0],
+        "dir_name": ":".join(uri.split(":")[1:]),
+        "input_atoms": input_atoms_metadata,
+        "quacc_version": __version__,
+    }
+
+    results = {"results": current_atoms.calc.results or {}}
+
+    if current_atoms:
+        atoms_to_store = prep_next_run(current_atoms)
+
+        current_atoms_metadata = atoms_to_metadata(atoms_to_store)
+    else:
+        current_atoms_metadata = {}
+
+    unsorted_task_doc = recursive_dict_merge(
+        current_atoms_metadata, opt_fields, inputs, results, additional_fields
+    )
+
+    task_doc = clean_task_doc(unsorted_task_doc)
+
+    if store:
+        results_to_db(store, task_doc)
+
+    raise error
 
 
 def summarize_vib_run(

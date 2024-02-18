@@ -35,6 +35,15 @@ class OptSchema(RunSchema):
     trajectory_results: list[results]
 
 
+class FailedSchema(RunSchema):
+    """Schema for [quacc.schemas.ase.summarize_failed_run][]"""
+
+    fmax: float | None
+    parameters_opt: dict[str, Any] | None
+    nsteps: int
+    trajectory: list[Atoms]
+
+
 class ParametersVib(TypedDict):
     delta: float
     direction: str

@@ -98,9 +98,10 @@ def run_calc(
         else:
             atoms.get_potential_energy()
     except QuaccException as e:
-        pass
+        e.current_state = e.current_state or atoms
+        raise e
     except Exception as e:
-        raise QuaccException(job_error=e, current_atoms=atoms)
+        raise QuaccException(job_error=e, current_state=atoms)
 
     # Most ASE calculators do not update the atoms object in-place with a call
     # to .get_potential_energy(), which is important if an internal optimizer is
@@ -219,9 +220,10 @@ def run_opt(
         try:
             dyn.run(fmax=fmax, steps=max_steps, **run_kwargs)
         except QuaccException as e:
-            e.current_atoms = dyn
+            e.current_state = dyn
+            raise e
         except Exception as e:
-            raise QuaccException(job_error=e, current_atoms=dyn)
+            raise QuaccException(job_error=e, current_state=dyn)
 
     # Store the trajectory atoms
     dyn.traj_atoms = read(traj_filename, index=":")

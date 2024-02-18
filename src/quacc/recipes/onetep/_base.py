@@ -9,7 +9,7 @@ from ase import Atoms
 from quacc import SETTINGS
 from quacc.calculators.onetep.onetep import Onetep
 from quacc.runners.ase import run_calc, run_opt
-from quacc.schemas.ase import summarize_opt_run, summarize_run
+from quacc.schemas.ase import summarize_failed_run, summarize_opt_run, summarize_run
 from quacc.utils.dicts import recursive_dict_merge
 from quacc.wflow_tools.exceptions import QuaccException
 
@@ -63,10 +63,13 @@ def base_fn(
 
     try:
         final_atoms = run_calc(atoms, copy_files=copy_files)
-    except QuaccException as e:
-        final_atoms = e.current_atoms or atoms
+    except QuaccException as error:
+        final_atoms = error.current_atoms
         additional_fields = recursive_dict_merge(
-            additional_fields, {"job_error": e.job_error, "read_error": e.read_error}
+            additional_fields, {"job_error": error.job_error, "read_error": error.read_error}
+        )
+        return summarize_failed_run(
+            error, input_atoms=atoms, additional_fields=additional_fields
         )
 
     return summarize_run(final_atoms, atoms, additional_fields=additional_fields)
@@ -127,14 +130,14 @@ def base_opt_fn(
 
     try:
         dyn = run_opt(atoms, copy_files=copy_files, **opt_flags)
-        failed = False
-    except QuaccException as e:
-        dyn = e.current_atoms
+    except QuaccException as error:
+        dyn = error.current_state
         additional_fields = recursive_dict_merge(
-            additional_fields, {"job_error": e.job_error, "read_error": e.read_error}
+            additional_fields,
+            {"job_error": error.job_error, "read_error": error.read_error},
         )
-        failed = True
+        return summarize_failed_run(
+            error, input_atoms=atoms, dyn=dyn, additional_fields=additional_fields
+        )
 
-    return summarize_opt_run(
-        dyn, check_convergence=False, additional_fields=additional_fields, failed=failed
-    )
+    return summarize_opt_run(dyn, additional_fields=additional_fields)
