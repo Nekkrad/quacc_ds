@@ -283,6 +283,7 @@ def summarize_failed_run(
         opt_fields = {
             "fmax": getattr(dyn, "fmax", None),
             "parameters_opt": parameters_opt,
+            "converged": False,
             "nsteps": dyn.get_number_of_steps(),
             "trajectory": trajectory,
         }
