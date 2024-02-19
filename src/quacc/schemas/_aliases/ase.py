@@ -40,6 +40,7 @@ class FailedSchema(RunSchema):
 
     fmax: float | None
     parameters_opt: dict[str, Any] | None
+    converged: bool
     nsteps: int
     trajectory: list[Atoms]
 
